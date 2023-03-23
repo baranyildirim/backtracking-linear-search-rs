@@ -3,8 +3,6 @@ use anyhow::Result;
 use argmin::core::CostFunction;
 use argmin::core::Executor;
 use argmin::core::Gradient;
-use argmin::core::IterState;
-use argmin::core::Problem;
 use argmin::solver::gradientdescent::SteepestDescent;
 use argmin::solver::linesearch::condition::StrongWolfeCondition;
 use argmin::solver::linesearch::BacktrackingLineSearch;
@@ -36,14 +34,15 @@ fn main() -> Result<()> {
     let linesearch =
         BacktrackingLineSearch::<Vec<f32>, Vec<f32>, StrongWolfeCondition<f32>, f32>::new(
             condition,
-        );
+        )
+        .rho(0.8)?;
 
     let descent = SteepestDescent::new(linesearch);
 
-    // Run solver
     let result = Executor::new(UserDefinedProblem {}, descent)
-        .configure(|state| state.param(vec![1.0f32, 1.0f32]))
+        .configure(|state| state.param(vec![1.0f32, 1.0f32]).max_iters(500))
         .run()?;
+
     println!("{}", result.to_string());
     Ok(())
 }
